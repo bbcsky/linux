@@ -1,0 +1,31 @@
+1、文件描述符
+Linux系统预留可三个文件描述符：0、1和2，他们的意义如下所示：
+0——标准输入（stdin）
+1——标准输出（stdout）
+2——标准错误（stderr）
+
+2、重定向
+重定向的符号有两个：>或>>，两者的区别是：
+>会先清空文件，然后再写入内容，
+>>会将重定向的内容追加到现有文件的尾部
+
+可以将stderr单独定向到一个文件，stdout重定向到另一个文件
+cmd 2> stderr.txt 1>stdout.txt
+
+也可以将stderr和stdout重定向到同一个文件
+cmd > output.txt 2>&1    或     cmd &> output.txt
+
+/dev/null是一个特殊的设备文件，这个文件接收到任何数据都会被丢弃。因此，null这个设备通常也被称为位桶（bit bucket）或黑洞
+所以，2>/dev/null的意思就是将标准错误stderr删掉
+
+>/dev/null 2>&1
+//会将标准输出，错误输出都重定向至/dev/null，也就是全部丢弃
+
+2>&1 >/dev/null
+//只会将标准输出重定向至/dev/null
+
+linux默认将fd0，fd1，fd2设置为指向/dev/stdin、/dev/stdout和/dev/stderr文件
+
+
+
+

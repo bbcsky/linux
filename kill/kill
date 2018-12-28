@@ -1,0 +1,6 @@
+/bin/kill -USR1 `cat /run/nginx.pid 2>/dev/null` 2>/dev/null || true
+#nginx logrotate 脚本
+/bin/kill -SIGUSR1 `cat /var/run/php-fpm/php-fpm.pid 2>/dev/null` 2>/dev/null || true
+#php-fpm logrotate 脚本
+/bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+#syslog logrotate 脚本
