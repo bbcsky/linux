@@ -1,0 +1,46 @@
+1. 安装JDK
+$ sudo yum install java-1.8.0-openjdk-headless.x86_64
+
+2. 安装MongoDB
+将
+[mongodb-org-3.6]
+name=MongoDB Repository
+baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/3.6/x86_64/
+gpgcheck=1
+enabled=1
+gpgkey=https://www.mongodb.org/static/pgp/server-3.6.asc
+加入到/etc/yum.repos.d/mongodb-org-3.6.repo
+$ sudo yum install -y mongodb-org
+$ sudo chkconfig --add mongod
+$ sudo systemctl daemon-reload
+$ sudo systemctl enable mongod.service
+$ sudo systemctl start mongod.service
+
+3. 安装Elasticsearch
+rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
+将
+[elasticsearch-6.x]
+name=Elasticsearch repository for 6.x packages
+baseurl=https://artifacts.elastic.co/packages/6.x/yum
+gpgcheck=1
+gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+enabled=1
+autorefresh=1
+type=rpm-md
+加入到/etc/yum.repos.d/elasticsearch.repo
+$ sudo yum install elasticsearch
+$ vim /etc/elasticsearch/elasticsearch.yml
+$ sudo chkconfig --add elasticsearch
+$ sudo systemctl daemon-reload
+$ sudo systemctl enable elasticsearch.service
+$ sudo systemctl restart elasticsearch.service
+
+4. 安装Graylog
+$ sudo rpm -Uvh https://packages.graylog2.org/repo/packages/graylog-2.5-repository_latest.rpm
+$ sudo yum install graylog-server
+$ vim /etc/graylog/server/server.conf
+$ echo -n "Enter Password: " && head -1 </dev/stdin | tr -d '\n' | sha256sum | cut -d" " -f1
+$ sudo chkconfig --add graylog-server
+$ sudo systemctl daemon-reload
+$ sudo systemctl enable graylog-server.service
+$ sudo systemctl start graylog-server.service

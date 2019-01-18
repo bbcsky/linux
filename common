@@ -1,0 +1,2 @@
+which linux system
+# ps -h -o comm -p 1
