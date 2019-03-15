@@ -4,3 +4,4 @@
 #php-fpm logrotate 脚本
 /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
 #syslog logrotate 脚本
+

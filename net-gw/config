@@ -1,0 +1,41 @@
+公网网关主机会默认配置 iptables 的 NAT 规则，以及打开 kernel 的 ip_forward，基本的公网网关功能已经完全具备。建议经过下述配置，以达到更好的性能。
+
+通过以下命令将 net.ipv4.ip_forward 配置写到 /etc/sysctl.conf 文件中。
+    echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
+通过以下命令将 nf_conntrack 配置参数调大。
+    echo "echo 1048576 > /proc/sys/net/netfilter/nf_conntrack_max" >> /etc/rc.local
+    echo "echo 262144 > /sys/module/nf_conntrack/parameters/hashsize" >> /etc/rc.local
+设置转发的 NAT 规则。
+    echo "iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE" >> /etc/rc.local
+关闭时间戳选项。
+    echo "iptables -t mangle -A POSTROUTING -p tcp -j TCPOPTSTRIP --strip-options timestamp" >> /etc/rc.local
+设置公网网关的 rps。
+在 /usr/local/sbin/ 目录下新建脚本 set_rps.sh，将以下代码写入脚本中：
+    #!/bin/bash
+    mask=0
+    i=0
+    cpu_nums=`cat /proc/cpuinfo |grep processor |wc -l`
+    if(($cpu_nums==0));then
+    exit 0
+    fi
+    nic_queues=`cat /proc/interrupts |grep -i virtio0-input |wc -l`
+    if(($nic_queues==0));then
+    exit 0
+    fi
+    echo "cpu number" $cpu_nums "nic queues" $nic_queues
+    mask=$(echo "obase=16;2^$cpu_nums - 1" |bc)
+    flow_entries=$(echo "$nic_queues * 4096" |bc)
+    echo "mask = "$mask
+    echo "flow_entries = "$flow_entries
+    #for i in {0..$nic_queues}
+    while (($i < $nic_queues))
+    do
+    echo $mask > /sys/class/net/eth0/queues/rx-$i/rps_cpus
+    echo 4096 > /sys/class/net/eth0/queues/rx-$i/rps_flow_cnt
+    i=$(($i+1))
+    done
+    echo $flow_entries > /proc/sys/net/core/rps_sock_flow_entries
+新建完成后执行以下命令：
+    chmod +x /usr/local/sbin/set_rps.sh
+    echo "/usr/local/sbin/set_rps.sh" >> /etc/rc.local
+完成上述配置后，重启公网网关主机使配置生效，并在无外网 IP 的子机上，测试是否能够成功访问外网。

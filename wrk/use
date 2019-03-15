@@ -1,0 +1,71 @@
+git clone https://github.com/wg/wrk
+make
+
+/*****
+-c, --connections:  总的连接数（每个线程处理的连接数=总连接数/线程数）
+
+-d, --duration:        测试的持续时间，如2s(2second)，2m(2minute)，2h(hour)
+
+-t, --threads:         需要执行的线程总数
+
+-s, --script:          执行Lua脚本，这里写lua脚本的路径和名称，后面会给出案例
+
+-H, --header:      需要添加的头信息，注意header的语法，举例，-H “token: abcdef”，说明一下，token，冒号，空格，abcdefg（不要忘记空格，否则会报错的）。
+
+--latency:     显示延迟统计信息
+
+--timeout:     超时的时间
+****/
+
+wget https://luarocks.org/releases/luarocks-3.0.4.tar.gz
+
+//这里指定你自己的 `wrk` 路径
+./configure --with-lua=../wrk/obj
+
+
+make install
+
+luarocks install md5
+
+
+Lua 脚本 helloDemo.lua
+/****
+md5=require("md5")
+-- md5加密，拼接请求对象
+function buildJson(json)
+  local apiKey = "abcdefg1234567"
+  local password = "qwerxxxx"
+  local timestamp = os.time() .. "000"
+
+  local secret = md5.sumhexa(apiKey .. timestamp ..  password)
+  local body = json .. "&timestamp=" .. timestamp .. "&secret=" .. secret
+
+  return body
+end
+
+wrk.method = "POST"
+wrk.body = buildJson("serviceName=com.github.dapeng.service.HelloService&version=1.0.0&methodName=sayHello&parameter={\"body\": {\"request\": {\"bizTag\": \"order\", \"step\": 100}}}")
+wrk.headers["Content-Type"] = "application/x-www-form-urlencoded"
+****/
+
+请求脚本
+/*********
+#!/usr/bin/env bash
+
+time1=`date +%s`
+echo "开始时间 `date +%Y%m%d%H%S`"
+
+# wrk 安装目录 -s 后指定上面写好的lua脚本
+~/ideaspace/dapeng/benchmark/wrk/wrk -t4 -c400 --timeout 5s -d 60s -s lua/$1.lua --latency 'http://127.0.0.1:9000/api/e1bfd762321e409cee4ac0b6e841963c'
+
+time2=`date +%s`
+useTime=$[time2 - time1]
+echo "结束时间 `date +%Y%m%d%H%S`"
+echo "总共花费 $useTime s"
+*******/
+
+执行脚本
+sh start-wrk.sh helloDemo
+
+wrk 是一款高性能的 http 请求压测工具，它使用了 Epoll 模型，使所有请求都是异步非阻塞模式的，因此对系统资源能够应用到极致，可以压满 cpu。
+wrk 可以落站使用 Lua 脚本。该特性可以使我们通过 脚本动态的改变请求参数，对请求压测提供的多样性的选择和定制。

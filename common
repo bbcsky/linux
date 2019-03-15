@@ -1,2 +1,5 @@
 which linux system
 # ps -h -o comm -p 1
+
+修改文件时间
+touch -d "2017-01-01 20:45:00" a

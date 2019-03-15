@@ -1,0 +1,6 @@
+打印log
+logger -p local3.emerg test
+
+.xxx: 表示大于等于xxx级别的信息
+.=xxx：表示等于xxx级别的信息
+.!xxx：表示在xxx之外的等级的信息
